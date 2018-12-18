@@ -58,6 +58,20 @@ inline double dist(double x1, double y1, double x2, double y2) {
 	return sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
 }
 
+/*
+ * Transform observation from vehicle coordinates to map coordinates.
+ * @param LandmarkObs obs: observation given in car coordinates system
+ * @param (xp, yp): coordinates of the particle (estimated position of the car
+ * in the map coordinates system)
+ * @param theta_p: heading of the particle in the map coordinate system
+ */
+inline LandmarkObs transformObservation(double xp, double yp, double theta_p, const LandmarkObs & obs) {
+    LandmarkObs tobs;
+    tobs.x = xp + cos(theta_p)*obs.x - sin(theta_p)*obs.y;
+    tobs.y = yp + sin(theta_p)*obs.x + cos(theta_p)*obs.y;
+    return tobs;
+}
+
 inline double * getError(double gt_x, double gt_y, double gt_theta, double pf_x, double pf_y, double pf_theta) {
 	static double error[3];
 	error[0] = fabs(pf_x - gt_x);
