@@ -32,7 +32,6 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
     normal_distribution<double> dist_x(x, std[0]);
     normal_distribution<double> dist_y(y, std[1]);
     normal_distribution<double> dist_theta(theta, std[2]);
-    double sample_x, sample_y, sample_theta;
     for(Particle p : particles)
     {
         p.x = dist_x(gen);
@@ -40,7 +39,7 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
         p.theta = dist_theta(gen);
         p.weight = 1.0;
     }
-
+    is_initialized = true;
 }
 
 void ParticleFilter::prediction(double delta_t, double std_pos[], double velocity, double yaw_rate) {
@@ -86,7 +85,7 @@ void ParticleFilter::dataAssociation(std::vector<LandmarkObs> predicted, std::ve
                 id = p.id;
             }
         }
-        obs.id = p.id;
+        obs.id = id;
     }
 }
 
@@ -105,11 +104,34 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
     for(Particle particle : particles)
     {
         vector<LandmarkObs> tobservations;
-        for(LandmarkObs obs : observations)
+        vector<LandmarkObs> landmarks;
+        int idx = 0;
+        //Only the landmarks that are in the sensor range are taken into
+        //account, taking as reference the current particle postion
+        for(int i=0; i < map_landmarks.landmark_list.size(); ++i)
         {
-            tobservations.push_back(transformObservation(particle.x, particle.y, particle.theta, obs));
+            if(dist(particle.x, particle.y, map_landmarks.landmark_list[i].x_f, map_landmarks.landmark_list[i].y_f) <= sensor_range)
+            {
+                LandmarkObs lmObs;
+                lmObs.id = idx;
+                idx++;
+                lmObs.x = map_landmarks.landmark_list[i].x_f;
+                lmObs.y = map_landmarks.landmark_list[i].y_f;
+                landmarks.push_back(lmObs);
+            }
         }
-        dataAssociation(map_landmarks, tobservations);
+        if(landmarks.size() > 0) {
+            for(LandmarkObs obs : observations)
+            {
+                tobservations.push_back(transformObservation(particle.x, particle.y, particle.theta, obs));
+            }
+            dataAssociation(landmarks, tobservations);
+            particle.weight = 1.0;
+            for(LandmarkObs tobs : tobservations)
+            {
+                particle.weight *= multiGauss(tobs.x, tobs.y, landmarks[tobs.id].x, landmarks[tobs.id].y, std_landmark[0], std_landmark[1]); 
+            }
+        }
     }
 }
 
