@@ -55,10 +55,18 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
         // These equations correspond to the bicycle motion model, which
         // predicts the next particle position and heading after delta_t time, using the
         // current measurements of yaw rate and velocity
-        xf = particles[i].x + (velocity/yaw_rate)*(sin(particles[i].theta + yaw_rate*delta_t) - sin(particles[i].theta));
-        yf = particles[i].y + (velocity/yaw_rate)*(cos(particles[i].theta) - cos(particles[i].theta + yaw_rate*delta_t));
-        theta_f = particles[i].theta + yaw_rate*delta_t;
-
+        if(fabs(yaw_rate) > 0.0)
+        {
+            xf = particles[i].x + (velocity/yaw_rate)*(sin(particles[i].theta + yaw_rate*delta_t) - sin(particles[i].theta));
+            yf = particles[i].y + (velocity/yaw_rate)*(cos(particles[i].theta) - cos(particles[i].theta + yaw_rate*delta_t));
+            theta_f = particles[i].theta + yaw_rate*delta_t;
+        }
+        else
+        {
+            xf = particles[i].x + velocity*delta_t*cos(particles[i].theta);
+            yf = particles[i].y + velocity*delta_t*sin(particles[i].theta);
+            theta_f = particles[i].theta;
+        }
         normal_distribution<double> dist_x(xf, std_pos[0]);
         normal_distribution<double> dist_y(yf, std_pos[1]);
         normal_distribution<double> dist_theta(theta_f, std_pos[2]);
