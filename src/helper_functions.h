@@ -74,8 +74,8 @@ inline LandmarkObs transformObservation(double xp, double yp, double theta_p, co
 
 inline double multiGauss(double x, double y, double mu_x, double mu_y, double sigma_x, double sigma_y) {
     double normalization = 1.0/(2*M_PI*sigma_x*sigma_y);
-    double e1 = ((x - mu_x)*(x - mu_x))/(2*sigma_x*sigma_x);
-    double e2 = ((y - mu_y)*(x - mu_y))/(2*sigma_y*sigma_y);
+    double e1 = ((x - mu_x)*(x - mu_x))/(2.0*sigma_x*sigma_x);
+    double e2 = ((y - mu_y)*(y - mu_y))/(2.0*sigma_y*sigma_y);
     return normalization*exp(-(e1+e2));
 }
 
